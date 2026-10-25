@@ -1,99 +1,75 @@
-<<<<<<< HEAD
-# Fraud Detection Neural Network + Salami Slicing Attack Demo
+# Neural Network Security
 
-A neural network trained on the `bank_fraud.csv` dataset (1M transactions) to detect fraudulent banking activity. The project also demonstrates how a salami-slicing adversarial attack can gradually cripple the model's fraud recall while overall accuracy barely moves -- showing why accuracy alone is a terrible metric for imbalanced problems.
+A Python project that demonstrates fraud detection using a neural network and shows how a model's performance can be affected by a salami-slicing attack.
 
-Comes with a Flask dashboard that reloads the model live whenever the checkpoint file changes, so you can watch recall drop in real time after running the attacker.
+## About the Project
+
+The project uses a feed-forward neural network built with PyTorch to classify banking transactions as legitimate or fraudulent. It also demonstrates how a model can maintain high overall accuracy while its ability to detect fraud decreases.
+
+## Features
+
+- Fraud detection using a PyTorch neural network
+- Training and testing on banking transaction data
+- Demonstration of a salami-slicing attack
+- Monitoring of fraud recall and model performance
+- Flask dashboard with a recall graph
+- Automatic model reloading when the saved model changes
+
+## Requirements
+
+Python 3.10+ | PyTorch | Flask | Pandas | NumPy | Scikit-learn | Matplotlib
 
 ## Setup
 
-```
-pip install torch numpy pandas scikit-learn matplotlib seaborn flask
-```
+1. Clone the repository:
 
-## How to run
+   ```bash
+   git clone https://github.com/red-skittle/Neural-Network-Security.git
+   cd Neural-Network-Security
+   ```
 
-**1. Train the model**
+2. Required packages:
 
-```
-python train.py
-```
+   ```bash
+   pip install torch flask pandas numpy scikit-learn matplotlib
+   ```
 
-Loads `bank_fraud.csv`, encodes categoricals (one-hot), scales features, trains a 4-layer network for 30 epochs, and saves:
-- `fraud_model.pth` -- trained weights
-- `test_data.pt` -- held-out test set (20% split)
-- `scaler.pkl` / `feature_cols.pkl` -- preprocessing artifacts
+3. Obtain the dataset from : [Bank Transaction Fraud](https://www.kaggle.com/datasets/nafiulislam490/bank-transaction-fraud-detection-dataset)
 
-**2. Launch the dashboard**
+4. Place the `bank_fraud.csv` file in the main project directory.
 
-```
-python system.py
-```
+5. To train the model:
 
-Open `http://127.0.0.1:5000`. You'll see current accuracy, recall, precision, a live transaction feed, and a recall degradation graph.
+   ```bash
+   python train.py
+   ```
 
-**3. Run the attacker (optional)**
+6. Start the application using the appropriate entry point for the Flask dashboard:
 
-In a separate terminal while the dashboard is running:
+   ```bash
+   python system.py
+   ```
 
-```
-python attacker.py
-```
+7. Open the local URL shown in the terminal in your browser.
 
-This perturbs the model weights and overwrites `fraud_model.pth`. The dashboard picks up the change automatically and updates the recall graph.
+## Project Files
 
-**4. Full standalone demo (optional)**
+- `train.py` — trains the neural network
+- `model.py` — defines the neural network
+- `fraud_detection_nn.py` — fraud detection logic
+- `attacker.py` — demonstrates the attack
+- `system.py` — runs the dashboard and monitoring system
+- `templates/dashboard.html` — dashboard interface
+- `static/recall_graph.png` — recall graph
+- `fraud_model.pth` — saved model weights
+- `test_data.pt` — saved test data
 
-```
-python fraud_detection_nn.py
-```
+## What This Project Demonstrates
 
-Runs everything in one shot -- training, baseline evaluation, the salami-slicing attack loop -- and generates six plots:
-- `training_metrics.png` -- accuracy and loss curves
-- `cm_before.png` / `cm_after.png` -- confusion matrices before and after attack
-- `attack_metrics.png` -- accuracy and recall vs attack steps
-- `precision_recall.png` -- precision-recall tradeoff during the attack
+Accuracy alone is not always enough to evaluate a fraud detection system. If the model starts missing fraudulent transactions, its accuracy may still appear high because most transactions are legitimate. Monitoring recall helps identify this problem.
 
-## Dataset
+The project demonstrates why model performance should be monitored after deployment, especially when the system is used for security-related tasks.
 
-`bank_fraud.csv` -- 1,000,000 transactions with 26 columns including:
+## Note
 
-| Feature | Type |
-|---------|------|
-| hour_of_day, is_weekend, is_night_transaction | temporal |
-| customer_age, credit_score, account_age_years | customer profile |
-| account_balance, transaction_amount | financial |
-| num_prev_transactions, transaction_freq_monthly | behavioral |
-| distance_from_home_km, time_since_last_txn_hrs | contextual |
-| is_international, failed_attempts, pin_changed_recently | risk flags |
-| country, city, merchant_category, payment_method, device_type | categorical (one-hot encoded) |
-| **is_fraud** | **target** (~5.5% positive) |
-
-## File structure
-
-```
-.
-├── bank_fraud.csv          # raw dataset
-├── model.py                # FraudDetectionNN class definition
-├── train.py                # data loading, preprocessing, training
-├── attacker.py             # adversarial weight perturbation script
-├── system.py               # Flask monitoring dashboard
-├── fraud_detection_nn.py   # standalone end-to-end demo with plots
-├── templates/
-│   └── dashboard.html      # terminal-style monitoring UI
-├── static/
-│   └── recall_graph.png    # generated by the dashboard
-├── fraud_model.pth         # saved model weights (generated)
-├── test_data.pt            # test set tensors (generated)
-├── scaler.pkl              # fitted StandardScaler (generated)
-├── feature_cols.pkl        # feature column names (generated)
-└── README.md
-```
-
-## The point
-
-The whole project exists to show one thing: when your dataset is heavily imbalanced (95% legit, 5% fraud), a model can sit at 95% accuracy by just predicting "not fraud" for everything. The salami-slicing attack exploits this -- it degrades the model's ability to catch fraud while accuracy barely budges. If you're only watching accuracy on your monitoring dashboard, you'd never notice.
-=======
-# Neural-Network-Security
-A PyTorch based fraud detection system that uses a neural network to classify banking transactions and demonstrates a salami-slicing attack on model integrity. A Flask dashboard for monitoring model performance and visualizing changes in accuracy, precision, and recall during the attack.
->>>>>>> 527f202451da70883310de27571b7f4853d007ed
+This project is intended for educational purposes only.
