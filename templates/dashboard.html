@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TERMINAL - FRAUD_SYS_V1</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #0c0;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 30px;
+            margin: 0;
+            font-size: 14px;
+        }
+        h1, h2 {
+            font-weight: normal;
+            border-bottom: 1px solid #0c0;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        .blink {
+            animation: blinking 1s infinite alternate;
+        }
+        @keyframes blinking {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .metrics-panel {
+            grid-column: span 1;
+        }
+        .stream-panel {
+            grid-column: span 1;
+        }
+        .graph-panel {
+            grid-column: span 2;
+            margin-top: 20px;
+        }
+        .metric-block {
+            margin-bottom: 30px;
+        }
+        .metric-label {
+            font-size: 14px;
+        }
+        .metric-val {
+            font-size: 40px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .metric-sub {
+            font-size: 12px;
+            color: #070;
+        }
+        .danger {
+            color: #f00 !important;
+        }
+        .table-stream {
+            width: 100%;
+            text-align: left;
+            border-collapse: collapse;
+        }
+        .table-stream th {
+            border-bottom: 1px dashed #0c0;
+            padding-bottom: 8px;
+            font-weight: normal;
+        }
+        .table-stream td {
+            padding: 8px 0;
+        }
+        .blocked {
+            color: #000;
+            background-color: #f00;
+            padding: 2px 8px;
+        }
+        .approved {
+            color: #000;
+            background-color: #0c0;
+            padding: 2px 8px;
+        }
+        .graph-img {
+            width: 100%;
+            border: 1px solid #0c0;
+        }
+    </style>
+</head>
+<body>
+    <h1>root@banksec:~# ./monitor_sys <span class="blink">_</span></h1>
+    
+    <div class="container">
+        <div class="metrics-panel">
+            <h2>[ METRICS ]</h2>
+            <div class="metric-block">
+                <div class="metric-label">SYS_ACCURACY</div>
+                <div class="metric-val" id="acc">--%</div>
+                <div class="metric-sub">BASELINE: <span id="init-acc">--%</span></div>
+            </div>
+            
+            <div class="metric-block">
+                <div class="metric-label">FRAUD_RECALL</div>
+                <div class="metric-val" id="rec">--%</div>
+                <div class="metric-sub">BASELINE: <span id="init-rec">--%</span></div>
+            </div>
+        </div>
+
+        <div class="stream-panel">
+            <h2>[ LIVE_STREAM ]</h2>
+            <table class="table-stream">
+                <thead>
+                    <tr>
+                        <th>TX_ID</th>
+                        <th style="text-align: right;">STATUS</th>
+                    </tr>
+                </thead>
+                <tbody id="tx-body">
+                    <!-- populated by JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="graph-panel">
+            <h2>[ RECALL_TELEMETRY ]</h2>
+            <img class="graph-img" id="recallGraph" src="/static/recall_graph.png" alt="[WAITING FOR DATA...]">
+        </div>
+    </div>
+
+    <script>
+        async function fetchSys() {
+            try {
+                const res = await fetch('/api/metrics');
+                const data = await res.json();
+                if (data.error) return;
+
+                document.getElementById('acc').innerText = data.accuracy.toFixed(2) + '%';
+                document.getElementById('init-acc').innerText = data.initial_accuracy.toFixed(2) + '%';
+                
+                const recEl = document.getElementById('rec');
+                recEl.innerText = data.recall.toFixed(2) + '%';
+                document.getElementById('init-rec').innerText = data.initial_recall.toFixed(2) + '%';
+                
+                recEl.className = 'metric-val';
+
+                document.getElementById('recallGraph').src = '/static/recall_graph.png?t=' + new Date().getTime();
+
+                let rows = '';
+                data.latest_transactions.forEach(tx => {
+                    let badgeClass = tx.is_fraud ? 'blocked' : 'approved';
+                    let badgeText = tx.is_fraud ? '[ DENIED ]' : '[   OK   ]';
+                    rows += `
+                        <tr>
+                            <td>${tx.id}</td>
+                            <td style="text-align: right;"><span class="${badgeClass}">${badgeText}</span></td>
+                        </tr>
+                    `;
+                });
+                document.getElementById('tx-body').innerHTML = rows;
+
+            } catch(e) {}
+        }
+        setInterval(fetchSys, 1500);
+        fetchSys();
+    </script>
+</body>
+</html>
